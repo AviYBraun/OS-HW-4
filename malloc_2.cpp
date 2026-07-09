@@ -1,23 +1,24 @@
 #include "os_malloc.h"
 #include <string.h>
+#include <cstring> 
 
-struct MallocMetaData{
+struct MallocMetadata{
     size_t size;
     bool is_free;
-    MallocMetaData* next;
-    MallocMetaData* prev;
+    MallocMetadata* next;
+    MallocMetadata* prev;
 };
 
-//global variables 
-extern MallocMetadata* head = nullptr;
-extern MallocMetadata tail = nullptr;
+//static variables 
+static MallocMetadata* head = nullptr;
+static MallocMetadata* tail = nullptr;
 
-extern size_t free_bytes = 0;
-extern size_t free_blocks = 0;
-extern size_t allocated_blocks = 0;
-extern size_t allocated_bytes = 0;
+static size_t free_bytes = 0;
+static size_t free_blocks = 0;
+static size_t allocated_blocks = 0;
+static size_t allocated_bytes = 0;
 
-consetexpr size_t META_SIZE = sizeof(MallocMetadata);
+constexpr size_t META_SIZE = sizeof(MallocMetadata);
 
 inline size_t getTotalSize(size_t req_size) {
     return req_size + sizeof(MallocMetadata);
@@ -81,7 +82,7 @@ void* smalloc(size_t size){
     tail = new_entry;
     new_entry->next = nullptr;
 
-    return new_entry + META_SIZE;
+    return new_entry + 1;
 }
 
 /* scalloc 
@@ -119,7 +120,6 @@ void sfree(void* p){
     if(!p){
         return;
     }
-    void* struct_addr = p - META_SIZE;
     MallocMetadata* entry = ((MallocMetadata*)p) - 1;
     if(entry->is_free){
         return;
