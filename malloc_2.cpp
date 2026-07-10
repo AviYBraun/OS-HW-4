@@ -1,4 +1,4 @@
-#include "os_malloc.h"
+#include <unistd.h>
 #include <string.h>
 #include <cstring> 
 
@@ -99,7 +99,7 @@ Return value:
 */
 
 void* scalloc(size_t num, size_t size){
-    if(num == 0 || size == 0 || num*size > 100000000 ){
+    if(num == 0 || size == 0 || num > 100000000 / size ){
         return nullptr;
     }
     void* new_mem = smalloc(num * size);
