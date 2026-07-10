@@ -1,6 +1,3 @@
-//
-// Created by student on 7/7/25.
-//
 #include <unistd.h>
 #include <iostream>
 #include <cstring>
@@ -28,13 +25,6 @@ size_t _size_meta_data(){
     return sizeof(MallocMetadata);
 }
 
-//TODO: add Orders array
-
-//TODO: understand how to split blocks and how to keep track of allocated blocks
-
-//TODO: understand how to make two blocks buddy blocks
-
-
 struct BuddyAllocator{
     MallocMetadata* array[MAX_ORDER + 1];
     int orders[MAX_ORDER + 1];
@@ -44,7 +34,7 @@ struct BuddyAllocator{
     size_t num_free_bytes = 32 * (MMAP_TREHSHOLD - BYTE_SIZE);
     size_t num_allocated_blocks = 32;
     size_t num_allocated_bytes = 32 * (MMAP_TREHSHOLD - BYTE_SIZE);
-    size_t num_meta_data_bytes = 32 * BYTE_SIZE; //TODO: if matters
+    size_t num_meta_data_bytes = 32 * BYTE_SIZE; 
 
     BuddyAllocator(){
         // int num = 128;
@@ -130,10 +120,6 @@ struct BuddyAllocator{
 
         num_free_bytes += p->size;
         num_free_blocks++;
-//        num_allocated_bytes -= p->size;
-
-//        num_allocated_blocks--;
-//        num_meta_data_bytes-=BYTE_SIZE;
     }
     void remove(MallocMetadata* p, int order){
         if (array[order] == p){
@@ -151,7 +137,6 @@ struct BuddyAllocator{
 
         num_free_bytes -= p->size;
         num_free_blocks--;
-//        num_allocated_bytes += p->size;
 
     }
 
@@ -160,7 +145,6 @@ struct BuddyAllocator{
         remove(metaPtr,index);
         MallocMetadata* left = metaPtr;
         for (int i = index - 1; i >= order; i--) {
-            // left = splitBlock(left,order,i);
             MallocMetadata* right = (MallocMetadata*)((char*)left + orders[i]);
             right->size = orders[i] - BYTE_SIZE;
             right->is_mmap = false;
@@ -211,11 +195,8 @@ struct BuddyAllocator{
         mmapTail = p;
         p->next = nullptr;
         p->size = size;
-//            num_free_bytes -= p->size;
-//            num_free_blocks--;
         num_allocated_blocks++;
         num_allocated_bytes+=p->size;
-//            num_meta_data_bytes+=BYTE_SIZE;
 
         return ((char*)p+BYTE_SIZE);
     }
@@ -235,11 +216,8 @@ struct BuddyAllocator{
         }
         p->next = nullptr;
         p->prev = nullptr;
-//        num_free_bytes += p->size;
-//        num_free_blocks++;
        num_allocated_blocks--;
        num_allocated_bytes-=p->size;
-//        num_meta_data_bytes-=BYTE_SIZE;
         munmap(p,p->size+BYTE_SIZE);
     }
 
@@ -308,7 +286,6 @@ size_t _num_allocated_bytes(){
 }
 
 size_t _num_meta_data_bytes(){
-//    return (ba.num_allocated_blocks + ba.num_free_blocks) * _size_meta_data();
      return ba.num_allocated_blocks  * _size_meta_data();
 }
 
@@ -322,15 +299,6 @@ void* smalloc(size_t size){
     } else{
         ret = ba.mmapBlock(size);
     }
-    // if (ret) {
-    //     MallocMetadata* metaPtr = (MallocMetadata*)((char*)ret-BYTE_SIZE);
-    //     ba.num_allocated_blocks++;
-    //     // ba.num_meta_data_bytes += BYTE_SIZE;
-    //     ba.num_allocated_bytes += metaPtr->size;
-    //     if(!metaPtr->is_mmap){
-    //         ba.num_free_bytes -= metaPtr->size;
-    //     }
-    // }
     return ret;
 }
 
@@ -361,10 +329,6 @@ void* scalloc(size_t num, size_t size){
     if(!ret){
         return nullptr;
     }
-//    char* tmp = (char*) ret;
-//    for(size_t i = 0; i < num * size;i++){
-//        tmp[i] = 0;
-//    }
     memset(ret, 0, num * size);
     return ret;
 }
@@ -381,7 +345,6 @@ void* srealloc(void* oldp, size_t size){
     }
 
     MallocMetadata* tmp = (MallocMetadata*)((char*)oldp - BYTE_SIZE);
-//    ba.array;
 
     if(tmp->is_mmap){
     if(tmp->size == size){
@@ -400,7 +363,6 @@ void* srealloc(void* oldp, size_t size){
 
     if(tmp->size >= size && size > 0){
         tmp->is_free = false;
-//         tmp->size = size; //TODO: check if we need to change it
         return oldp;
     }
     size_t old_size = tmp->size;
@@ -422,21 +384,3 @@ void* srealloc(void* oldp, size_t size){
     sfree(oldp);
     return ret;
 }
-
-
-
-
-//int main(){
-////    int* intptr = (int*) smalloc(4);
-//
-//    int* intptr1 = (int*)smalloc(88);  // Should use order 0 (128B)
-//    ba.array;
-//    int* intptr2 = (int*)smalloc(88);
-//    int* intprr3 = (int*)smalloc(88);
-//    sfree(intptr2);
-//    sfree(intptr1);
-//    sfree(intprr3);
-//
-//    return 0;
-//
-//}
