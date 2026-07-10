@@ -163,7 +163,7 @@ void* srealloc(void* oldp, size_t size){
     }
     //Case 2: we need to try to allocate a new block - use malloc, see what happens before freeing
     void* new_block = smalloc(size);
-    if(new_block == (void*)-1){
+    if(!new_block){
         return nullptr;
     }
     //we succeeded in creating the block - now copy the memory. Note: we don't need to update the struct, smalloc does this for us
