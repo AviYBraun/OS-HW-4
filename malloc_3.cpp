@@ -266,8 +266,6 @@ struct BuddyAllocator{
 };
 
 
-// constructed on first use, so the initial 32 blocks are allocated
-// the first time the library is called
 static BuddyAllocator& getBA(){
     static BuddyAllocator ba;
     return ba;
