@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include <iostream>
 #include <cstring>
 #include <cstdint>
 #include <sys/mman.h>
@@ -27,7 +26,7 @@ size_t _size_meta_data(){
 
 struct BuddyAllocator{
     MallocMetadata* array[MAX_ORDER + 1];
-    int orders[MAX_ORDER + 1];
+    size_t orders[MAX_ORDER + 1];
     MallocMetadata *mmapHead = nullptr;
     MallocMetadata *mmapTail = nullptr;
     size_t num_free_blocks = 32;
@@ -267,26 +266,29 @@ struct BuddyAllocator{
 };
 
 
-BuddyAllocator ba;
+static BuddyAllocator& getBA(){
+    static BuddyAllocator ba;
+    return ba;
+}
 
 size_t _num_free_blocks(){
-    return ba.num_free_blocks;
+    return getBA().num_free_blocks;
 }
 
 size_t _num_free_bytes(){
-    return ba.num_free_bytes;
+    return getBA().num_free_bytes;
 }
 
 size_t _num_allocated_blocks(){
-    return ba.num_allocated_blocks;
+    return getBA().num_allocated_blocks;
 }
 
 size_t _num_allocated_bytes(){
-    return ba.num_allocated_bytes;
+    return getBA().num_allocated_bytes;
 }
 
 size_t _num_meta_data_bytes(){
-     return ba.num_allocated_blocks  * _size_meta_data();
+     return getBA().num_allocated_blocks  * _size_meta_data();
 }
 
 void* smalloc(size_t size){
@@ -295,9 +297,9 @@ void* smalloc(size_t size){
     }
     void* ret;
     if(size + BYTE_SIZE <= MMAP_TREHSHOLD){
-        ret = ba.searchBlock(size);
+        ret = getBA().searchBlock(size);
     } else{
-        ret = ba.mmapBlock(size);
+        ret = getBA().mmapBlock(size);
     }
     return ret;
 }
@@ -313,11 +315,11 @@ void sfree(void* p){
     }
 
     if(metaPtr->is_mmap){
-        ba.ummapBlock(metaPtr);
+        getBA().ummapBlock(metaPtr);
         return;
     }
     while (metaPtr){
-        metaPtr = ba.uniteBlocks(metaPtr);
+        metaPtr = getBA().uniteBlocks(metaPtr);
     };
 }
 
@@ -367,9 +369,9 @@ void* srealloc(void* oldp, size_t size){
     }
     size_t old_size = tmp->size;
 
-    if(ba.canReachByMerging(tmp, size)){
+    if(getBA().canReachByMerging(tmp, size)){
     while(tmp && tmp->size < size){
-        tmp = ba.uniteBlocks(tmp);
+        tmp = getBA().uniteBlocks(tmp);
     }
     void* ret = (char*)tmp + BYTE_SIZE;
     memmove(ret, oldp, old_size);
