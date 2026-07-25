@@ -26,7 +26,7 @@ size_t _size_meta_data(){
 
 struct BuddyAllocator{
     MallocMetadata* array[MAX_ORDER + 1];
-    int orders[MAX_ORDER + 1];
+    size_t orders[MAX_ORDER + 1];
     MallocMetadata *mmapHead = nullptr;
     MallocMetadata *mmapTail = nullptr;
     size_t num_free_blocks = 32;
